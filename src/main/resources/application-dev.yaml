@@ -1,0 +1,25 @@
+spring:
+  jpa:
+    show-sql: true
+
+  datasource:
+    url: jdbc:postgresql://${db.host}:${db.port}/${db.name}?currentSchema=user_service
+    username: ${db.username}
+    password: ${db.password}
+
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers}
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.base.userservice: DEBUG
+    org.hibernate.SQL: DEBUG

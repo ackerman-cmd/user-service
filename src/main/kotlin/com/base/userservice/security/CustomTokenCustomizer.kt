@@ -1,0 +1,25 @@
+package com.base.userservice.security
+
+import com.base.userservice.repository.user.UserRepository
+import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer
+import org.springframework.stereotype.Component
+
+@Component
+class CustomTokenCustomizer(
+    private val userRepository: UserRepository,
+) : OAuth2TokenCustomizer<JwtEncodingContext> {
+    override fun customize(context: JwtEncodingContext) {
+        val principal = context.getPrincipal<Authentication>()
+        val user = userRepository.findByUsername(principal.name) ?: return
+
+        context.claims
+            .claim("user_id", user.id.toString())
+            .claim("email", user.email)
+            .claim("username", user.username)
+            .claim("roles", user.roles.map { it.name })
+            .claim("permissions", user.allPermissions().toList())
+            .claim("status", user.status.name)
+    }
+}
