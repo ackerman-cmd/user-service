@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset user-service:006-create-oauth2-tables-postgresql
+-- changeset ackerman:006-create-oauth2-tables-postgresql
 
 
 

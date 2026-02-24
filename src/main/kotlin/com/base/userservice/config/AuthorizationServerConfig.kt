@@ -21,7 +21,6 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
 
 @Configuration
 class AuthorizationServerConfig {
-
     @Bean
     @Order(1)
     fun authorizationServerSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -35,14 +34,17 @@ class AuthorizationServerConfig {
                 LoginUrlAuthenticationEntryPoint("/login"),
                 MediaTypeRequestMatcher(MediaType.TEXT_HTML),
             )
-        }.oauth2ResourceServer { it.jwt(Customizer.withDefaults()) }
+        }
+
+        http.csrf { it.ignoringRequestMatchers(asConfigurer.endpointsMatcher) }
+
+        http.oauth2ResourceServer { it.jwt(Customizer.withDefaults()) }
 
         return http.build()
     }
 
     @Bean
-    fun registeredClientRepository(jdbcTemplate: JdbcTemplate): RegisteredClientRepository =
-        JdbcRegisteredClientRepository(jdbcTemplate)
+    fun registeredClientRepository(jdbcTemplate: JdbcTemplate): RegisteredClientRepository = JdbcRegisteredClientRepository(jdbcTemplate)
 
     @Bean
     fun authorizationService(
@@ -58,6 +60,10 @@ class AuthorizationServerConfig {
 
     @Bean
     fun authorizationServerSettings(): AuthorizationServerSettings =
-        AuthorizationServerSettings.builder().issuer("http://localhost:8080").build()
-
+        AuthorizationServerSettings
+            .builder()
+            .issuer("http://localhost:8080")
+            .tokenRevocationEndpoint("/oauth2/revoke")
+            .tokenIntrospectionEndpoint("/oauth2/introspect")
+            .build()
 }

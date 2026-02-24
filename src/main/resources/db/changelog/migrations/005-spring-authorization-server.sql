@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset user-service:005-spring-authorization-server
+-- changeset ackerman:005-spring-authorization-server
 -- Официальная схема Spring Authorization Server
 -- https://github.com/spring-projects/spring-authorization-server/blob/main/oauth2-authorization-server/src/main/resources/org/springframework/security/oauth2/server/authorization/client/oauth2-registered-client-schema.sql
 

@@ -3,6 +3,7 @@ package com.base.userservice.exeption.handler
 import com.base.userservice.exeption.InvalidPasswordException
 import com.base.userservice.exeption.UserAlreadyExistsException
 import com.base.userservice.exeption.UserNotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+    private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+
     @ExceptionHandler(UserNotFoundException::class)
     fun handleUserNotFound(ex: UserNotFoundException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.message ?: "User not found")
@@ -34,7 +37,14 @@ class GlobalExceptionHandler {
             .also { it.setProperty("errors", errors) }
     }
 
+    @ExceptionHandler(IllegalStateException::class)
+    fun handleIllegalState(ex: IllegalStateException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.message ?: "Illegal state")
+
     @ExceptionHandler(Exception::class)
     fun handleGeneric(ex: Exception): ProblemDetail =
-        ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error")
+        ProblemDetail.forStatusAndDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            ex.message ?: "Internal server error",
+        )
 }

@@ -2,8 +2,8 @@ package com.base.userservice.domain.role
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.CreationTimestamp
@@ -14,13 +14,13 @@ import java.util.UUID
 @Table(name = "permissions", schema = "user_service")
 class Permission(
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    val id: UUID = UUID.randomUUID(),
+    val id: UUID? = null,
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true)
-    val name: String,
+    val name: PermissionType,
     @Column
     val description: String? = null,
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime,
 )

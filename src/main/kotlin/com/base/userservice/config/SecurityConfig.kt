@@ -24,14 +24,13 @@ class SecurityConfig {
                         "/api/v1/auth/register",
                         "/api/v1/auth/verify",
                         "/actuator/health",
-                        "/oauth2/**",
                         "/login",
                     ).permitAll()
                     .requestMatchers("/api/v1/admin/**")
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated()
-            }.formLogin { it.loginPage("/login").permitAll() }
+            }.formLogin { } // TODO: do custom page
             .csrf { it.disable() }
             .oauth2ResourceServer { it.jwt { } }
 

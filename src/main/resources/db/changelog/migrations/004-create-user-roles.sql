@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset user-service:004-create-user-roles
+-- changeset ackerman:004-create-user-roles
 
 CREATE TABLE user_service.user_roles
 (

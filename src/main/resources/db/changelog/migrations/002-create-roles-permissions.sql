@@ -1,21 +1,21 @@
 -- liquibase formatted sql
 
--- changeset user-service:002-create-roles-permissions
+-- changeset ackerman:002-create-roles-permissions
 
 CREATE TABLE user_service.permissions
 (
-    id          UUID        NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    id          UUID        NOT NULL  PRIMARY KEY,
     name        VARCHAR(64) NOT NULL UNIQUE,
     description VARCHAR(255),
-    created_at  TIMESTAMP   NOT NULL DEFAULT now()
+    created_at  TIMESTAMP   NOT NULL
 );
 
 CREATE TABLE user_service.roles
 (
-    id          UUID        NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    id          UUID        NOT NULL  PRIMARY KEY,
     name        VARCHAR(64) NOT NULL UNIQUE,
     description VARCHAR(255),
-    created_at  TIMESTAMP   NOT NULL DEFAULT now()
+    created_at  TIMESTAMP   NOT NULL
 );
 
 CREATE TABLE user_service.role_permissions
@@ -25,15 +25,15 @@ CREATE TABLE user_service.role_permissions
     PRIMARY KEY (role_id, permission_id)
 );
 
-INSERT INTO user_service.permissions (name, description)
-VALUES ('USER_READ', 'Чтение данных пользователей'),
-       ('USER_WRITE', 'Создание и редактирование пользователей'),
-       ('USER_DELETE', 'Удаление пользователей'),
-       ('ADMIN_ACCESS', 'Полный доступ к административным функциям');
+INSERT INTO user_service.permissions (id, name, description, created_at)
+VALUES (gen_random_uuid(),'USER_READ', 'Чтение данных пользователей', now()),
+       (gen_random_uuid(),'USER_WRITE', 'Создание и редактирование пользователей', now()),
+       (gen_random_uuid(),'USER_DELETE', 'Удаление пользователей', now()),
+       (gen_random_uuid(),'ADMIN_ACCESS', 'Полный доступ к административным функциям', now());
 
-INSERT INTO user_service.roles (name, description)
-VALUES ('ROLE_USER', 'Стандартный пользователь'),
-       ('ROLE_ADMIN', 'Администратор системы');
+INSERT INTO user_service.roles (id, name, description, created_at)
+VALUES (gen_random_uuid(),'ROLE_USER', 'Стандартный пользователь', now()),
+       (gen_random_uuid(),'ROLE_ADMIN', 'Администратор системы', now());
 
 INSERT INTO user_service.role_permissions (role_id, permission_id)
 SELECT r.id, p.id

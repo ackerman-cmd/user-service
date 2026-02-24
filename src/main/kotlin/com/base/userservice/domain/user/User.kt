@@ -6,8 +6,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
@@ -22,8 +20,7 @@ import java.util.UUID
 @Table(name = "users", schema = "user_service")
 class User(
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    val id: UUID = UUID.randomUUID(),
+    val id: UUID? = null,
     @Column(nullable = false, unique = true)
     val email: String,
     @Column(nullable = false, unique = true)
@@ -35,13 +32,11 @@ class User(
     @Column(name = "last_name")
     var lastName: String? = null,
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var status: UserStatus = UserStatus.PENDING_VERIFICATION,
+    @Column
+    var status: UserStatus,
     @Column(name = "email_verified", nullable = false)
     var emailVerified: Boolean = false,
-    @Column(name = "verification_token")
-    var verificationToken: String? = null,
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "user_roles",
         schema = "user_service",
@@ -51,10 +46,8 @@ class User(
     val roles: MutableSet<Role> = mutableSetOf(),
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime,
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
-) {
-    fun allPermissions(): Set<String> = roles.flatMap { role -> role.permissions.map { it.name } }.toSet()
-}
+    var updatedAt: LocalDateTime,
+)
