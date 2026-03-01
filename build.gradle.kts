@@ -4,7 +4,8 @@ plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.spring") version "2.2.21"
     kotlin("plugin.jpa") version "2.2.21"
-    id("org.springframework.boot") version "4.0.3"
+
+    id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
 }
@@ -27,31 +28,54 @@ repositories {
 }
 
 dependencies {
+    // ===== App starters =====
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.security:spring-security-oauth2-authorization-server")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-liquibase")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("commons-logging:commons-logging:1.3.4")
 
+    // ===== Security / Auth Server =====
+    implementation("org.springframework.security:spring-security-oauth2-authorization-server")
+
+    // ===== Kotlin =====
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // ===== DB / Migrations =====
+    // Для Spring Boot 3.4.x: подключаем liquibase-core (а не spring-boot-starter-liquibase)
+    implementation("org.liquibase:liquibase-core")
     runtimeOnly("org.postgresql:postgresql")
 
+    // ===== Tests =====
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+
+    // Testcontainers (Boot управляет версиями через BOM)
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:kafka")
+    testImplementation("org.testcontainers:testcontainers")
+
+    // Kotlin test (можно оставить, но обычно starter-test хватает)
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+
+    // Mocking
+    testImplementation("io.mockk:mockk:1.14.9")
+
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        freeCompilerArgs.addAll(
+            "-Xjsr305=strict",
+            "-Xannotation-default-target=param-property",
+        )
     }
 }
 

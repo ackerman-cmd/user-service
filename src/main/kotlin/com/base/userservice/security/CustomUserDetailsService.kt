@@ -17,7 +17,7 @@ class CustomUserDetailsService(
             userRepository.findByUsername(username)
                 ?: throw UsernameNotFoundException("User not found: $username")
 
-//        val disabled = user.status != UserStatus.ACTIVE || !user.emailVerified
+        val disabled = user.status != UserStatus.ACTIVE || !user.emailVerified
         val locked = user.status == UserStatus.BLOCKED
 
         val roleNames = userRepository.findRolesByUsername(user.username)
@@ -35,7 +35,7 @@ class CustomUserDetailsService(
             .accountExpired(false)
             .accountLocked(locked)
             .credentialsExpired(false)
-            .disabled(false)
+            .disabled(disabled)
             .build()
     }
 }

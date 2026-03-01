@@ -2,7 +2,7 @@ package com.base.userservice.api.v1.controller
 
 import com.base.userservice.api.message.response.UserResponse
 import com.base.userservice.domain.user.UserStatus
-import com.base.userservice.service.impl.UserService
+import com.base.userservice.service.UserService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping

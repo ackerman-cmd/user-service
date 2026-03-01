@@ -1,4 +1,4 @@
-package com.base.userservice.service.impl
+package com.base.userservice.service
 
 import com.base.userservice.api.message.response.UserResponse
 import com.base.userservice.domain.user.ChangePasswordCommand

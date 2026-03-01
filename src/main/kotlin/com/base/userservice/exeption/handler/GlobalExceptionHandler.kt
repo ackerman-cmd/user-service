@@ -3,10 +3,11 @@ package com.base.userservice.exeption.handler
 import com.base.userservice.exeption.InvalidPasswordException
 import com.base.userservice.exeption.UserAlreadyExistsException
 import com.base.userservice.exeption.UserNotFoundException
+import com.base.userservice.exeption.VerificationTokenException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
-import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
@@ -25,6 +26,13 @@ class GlobalExceptionHandler {
     @ExceptionHandler(InvalidPasswordException::class)
     fun handleInvalidPassword(ex: InvalidPasswordException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid password")
+
+    @ExceptionHandler(VerificationTokenException::class)
+    fun handleVerificationToken(ex: VerificationTokenException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST,
+            ex.message ?: "Invalid or expired verification token",
+        )
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(ex: MethodArgumentNotValidException): ProblemDetail {
