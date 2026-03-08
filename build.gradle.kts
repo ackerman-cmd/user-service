@@ -41,11 +41,12 @@ dependencies {
     // ===== Security / Auth Server =====
     implementation("org.springframework.security:spring-security-oauth2-authorization-server")
 
+    // ===== API Documentation =====
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
+
     // ===== Kotlin =====
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    // ===== DB / Migrations =====
-    // Для Spring Boot 3.4.x: подключаем liquibase-core (а не spring-boot-starter-liquibase)
     implementation("org.liquibase:liquibase-core")
     runtimeOnly("org.postgresql:postgresql")
 
@@ -54,18 +55,18 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
-    // Testcontainers (Boot управляет версиями через BOM)
+    // Testcontainers
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:kafka")
     testImplementation("org.testcontainers:testcontainers")
 
-    // Kotlin test (можно оставить, но обычно starter-test хватает)
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 
     // Mocking
     testImplementation("io.mockk:mockk:1.14.9")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

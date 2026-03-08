@@ -1,5 +1,6 @@
 package com.base.userservice.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -20,7 +21,9 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
 
 @Configuration
-class AuthorizationServerConfig {
+class AuthorizationServerConfig(
+    @Value("\${app.base-url}") private val baseUrl: String,
+) {
     @Bean
     @Order(1)
     fun authorizationServerSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -66,7 +69,7 @@ class AuthorizationServerConfig {
     fun authorizationServerSettings(): AuthorizationServerSettings =
         AuthorizationServerSettings
             .builder()
-            .issuer("http://localhost:8080")
+            .issuer(baseUrl)
             .tokenRevocationEndpoint("/oauth2/revoke")
             .tokenIntrospectionEndpoint("/oauth2/introspect")
             .build()

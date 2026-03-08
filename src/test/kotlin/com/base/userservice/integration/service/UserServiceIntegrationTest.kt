@@ -2,18 +2,21 @@ package com.base.userservice.integration.service
 
 import com.base.userservice.TestDataInsertionUtils
 import com.base.userservice.TestDbCleaner
-import com.base.userservice.util.TestUtils
-import com.base.userservice.domain.user.ChangePasswordCommand
+import com.base.userservice.api.message.request.ChangePasswordRequest
+import com.base.userservice.api.message.request.UpdateProfileRequest
 import com.base.userservice.domain.user.UserStatus
 import com.base.userservice.integration.AbstractIntegrationTest
 import com.base.userservice.repository.UserRepository
 import com.base.userservice.service.AuthService
 import com.base.userservice.service.UserService
+import com.base.userservice.util.TestUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.Jwt
+import java.time.Instant
 import java.util.UUID
 
 class UserServiceIntegrationTest : AbstractIntegrationTest() {
@@ -31,7 +34,6 @@ class UserServiceIntegrationTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var inserter: TestDataInsertionUtils
-
 
     @BeforeEach
     fun setUp() {
@@ -56,13 +58,47 @@ class UserServiceIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `change password of existing user`() {
         val registered = authService.register(TestUtils.createRegisterUserCommand(username = "user2"))
-        val userId: UUID = registered.id
+        val jwt = buildJwt(registered.id)
 
-        val command = ChangePasswordCommand(currentPassword = "Password123!", newPassword = "NewPassword123!")
+        userService.changePassword(jwt, ChangePasswordRequest("Password123!", "NewPassword123!"))
 
-        userService.changePassword(userId, command)
-
-        val user = userRepository.findById(userId).orElse(null)
+        val user = userRepository.findById(registered.id).orElse(null)
         assertNotNull(user)
     }
+
+    @Test
+    fun `update profile of existing user`() {
+        val registered = authService.register(TestUtils.createRegisterUserCommand(username = "user3"))
+        val jwt = buildJwt(registered.id)
+
+        val updated = userService.updateProfile(jwt, UpdateProfileRequest("Updated", "Name"))
+
+        assertEquals("Updated", updated.firstName)
+        assertEquals("Name", updated.lastName)
+
+        val fromDb = userRepository.findById(registered.id).orElse(null)
+        assertNotNull(fromDb)
+        assertEquals("Updated", fromDb!!.firstName)
+        assertEquals("Name", fromDb.lastName)
+    }
+
+    @Test
+    fun `update profile keeps existing values when fields are null`() {
+        val registered = authService.register(TestUtils.createRegisterUserCommand(username = "user4"))
+        val jwt = buildJwt(registered.id)
+
+        val updated = userService.updateProfile(jwt, UpdateProfileRequest(null, null))
+
+        assertEquals("John", updated.firstName)
+        assertEquals("Doe", updated.lastName)
+    }
+
+    private fun buildJwt(userId: UUID): Jwt =
+        Jwt
+            .withTokenValue("token")
+            .header("alg", "RS256")
+            .claim("user_id", userId.toString())
+            .issuedAt(Instant.now())
+            .expiresAt(Instant.now().plusSeconds(3600))
+            .build()
 }

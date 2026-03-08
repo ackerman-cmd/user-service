@@ -1,4 +1,4 @@
-package com.base.userservice.exeption
+package com.base.userservice.exception
 
 class UserAlreadyExistsException(
     message: String,

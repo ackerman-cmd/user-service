@@ -41,8 +41,29 @@ spring:
       acks: all
       retries: 3
 
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  kafka:
+    topics:
+      email-verification: email-verification
+  outbox:
+    poll-interval-ms: ${OUTBOX_POLL_INTERVAL_MS:5000}
+    max-retries: ${OUTBOX_MAX_RETRIES:5}
+
 server:
   port: 8080
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+    display-request-duration: true
+    try-it-out-enabled: true
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
 
 management:
   endpoints:

@@ -19,31 +19,11 @@ interface UserRepository : JpaRepository<User, UUID> {
         select distinct u
         from User u
         left join fetch u.roles r
-        where u.id = :id
-    """,
-    )
-    fun findByIdWithRoles(id: UUID): User?
-
-    @Query(
-        """
-        select distinct u
-        from User u
-        left join fetch u.roles r
         left join fetch r.permissions p
         where u.id = :id
     """,
     )
     fun findByIdWithRolesAndPermissions(id: UUID): User?
-
-    @Query(
-        """
-        select distinct u
-        from User u
-        left join fetch u.roles r
-        where u.username = :username
-    """,
-    )
-    fun findByUsernameWithRoles(username: String): User?
 
     @Query(
         """

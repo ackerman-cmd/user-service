@@ -1,14 +1,15 @@
 package com.base.userservice.service
 
+import com.base.userservice.api.message.request.ChangePasswordRequest
+import com.base.userservice.api.message.request.UpdateProfileRequest
 import com.base.userservice.api.message.response.UserResponse
-import com.base.userservice.domain.user.ChangePasswordCommand
-import com.base.userservice.domain.user.UpdateProfileCommand
 import com.base.userservice.domain.user.User
 import com.base.userservice.domain.user.UserStatus
-import com.base.userservice.exeption.InvalidPasswordException
-import com.base.userservice.exeption.UserNotFoundException
+import com.base.userservice.exception.InvalidPasswordException
+import com.base.userservice.exception.UserNotFoundException
 import com.base.userservice.repository.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -18,67 +19,60 @@ class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
-    fun findById(id: UUID): UserResponse =
-        UserResponse.from(
-            getById(id),
-        )
+    fun findById(id: UUID): UserResponse = UserResponse.from(getById(id))
 
-    fun findByIdWithRoles(id: UUID): UserResponse {
-        val user = getById(id)
-        val roles = userRepository.findRolesByUsername(user.username)
-        return UserResponse.fromWithRoles(user, roles)
-    }
+    @Transactional(readOnly = true)
+    fun findByIdWithRolesAndPermissions(id: UUID): UserResponse = toResponseWithRolesAndPermissions(getByIdWithRolesAndPermissions(id))
 
-    fun findByIdWithRolesAndPermissions(id: UUID): UserResponse {
-        val user = getById(id)
-        val roles = userRepository.findRolesByUsername(user.username)
-        val perms = userRepository.findPermissionsByUsername(user.username)
-        return UserResponse.fromWithRolesAndPermissions(user, roles, perms)
-    }
+    fun findByUsername(name: String): UserResponse = UserResponse.from(getByUsername(name))
 
-    fun findByUsername(name: String): UserResponse =
-        UserResponse.from(
-            getByUsername(name),
-        )
-
-    fun findByUsernameWithRoles(name: String): UserResponse {
-        val user = getByUsername(name)
-        val roles = userRepository.findRolesByUsername(user.username)
-        return UserResponse.fromWithRoles(user, roles)
-    }
-
+    @Transactional(readOnly = true)
     fun findByUsernameWithRolesAndPermissions(name: String): UserResponse {
-        val user = getByUsername(name)
-        val roles = userRepository.findRolesByUsername(user.username)
-        val perms = userRepository.findPermissionsByUsername(user.username)
-        return UserResponse.fromWithRolesAndPermissions(user, roles, perms)
+        val user =
+            userRepository.findByUsernameWithRolesAndPermissions(name)
+                ?: throw UserNotFoundException("User with username: $name not found")
+        return toResponseWithRolesAndPermissions(user)
     }
+
+    @Transactional(readOnly = true)
+    fun getCurrentUser(jwt: Jwt): UserResponse = toResponseWithRolesAndPermissions(getByIdWithRolesAndPermissions(extractUserId(jwt)))
 
     @Transactional
     fun updateProfile(
-        id: UUID,
-        command: UpdateProfileCommand,
+        jwt: Jwt,
+        request: UpdateProfileRequest,
     ): UserResponse {
-        val user = getById(id)
-        user.firstName = command.firstName
-        user.lastName = command.lastName
+        val user = getById(extractUserId(jwt))
+        request.firstName?.let { user.firstName = it }
+        request.lastName?.let { user.lastName = it }
         val saved = userRepository.save(user)
         return UserResponse.from(saved)
     }
 
     @Transactional
     fun changePassword(
-        id: UUID,
-        command: ChangePasswordCommand,
+        jwt: Jwt,
+        request: ChangePasswordRequest,
     ) {
-        val user = getById(id)
+        val user = getById(extractUserId(jwt))
 
-        if (!passwordEncoder.matches(command.currentPassword, user.passwordHash)) {
+        if (!passwordEncoder.matches(request.currentPassword, user.passwordHash)) {
             throw InvalidPasswordException("Current password is incorrect")
         }
 
-        user.passwordHash = passwordEncoder.encode(command.newPassword)!!
+        user.passwordHash = passwordEncoder.encode(request.newPassword)!!
         userRepository.save(user)
+    }
+
+    @Transactional
+    fun changeOwnStatus(
+        jwt: Jwt,
+        status: UserStatus,
+    ): UserResponse {
+        val user = getById(extractUserId(jwt))
+        user.status = status
+        val saved = userRepository.save(user)
+        return UserResponse.from(saved)
     }
 
     @Transactional
@@ -92,12 +86,28 @@ class UserService(
         return UserResponse.from(saved)
     }
 
+    private fun extractUserId(jwt: Jwt): UUID = UUID.fromString(jwt.getClaimAsString("user_id"))
+
     private fun getById(id: UUID): User =
         userRepository.findById(id).orElseThrow {
             UserNotFoundException("User with id: $id not found")
         }
 
+    private fun getByIdWithRolesAndPermissions(id: UUID): User =
+        userRepository.findByIdWithRolesAndPermissions(id)
+            ?: throw UserNotFoundException("User with id: $id not found")
+
     private fun getByUsername(username: String): User =
         userRepository.findByUsername(username)
-            ?: throw UserNotFoundException("User with username: $username not found:")
+            ?: throw UserNotFoundException("User with username: $username not found")
+
+    private fun toResponseWithRolesAndPermissions(user: User): UserResponse {
+        val roles = user.roles.map { it.name.name }
+        val perms =
+            user.roles
+                .flatMap { it.permissions }
+                .map { it.name.name }
+                .distinct()
+        return UserResponse.fromWithRolesAndPermissions(user, roles, perms)
+    }
 }

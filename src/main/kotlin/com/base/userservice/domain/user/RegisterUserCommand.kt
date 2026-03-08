@@ -7,13 +7,3 @@ data class RegisterUserCommand(
     val firstName: String? = null,
     val lastName: String? = null,
 )
-
-data class UpdateProfileCommand(
-    val firstName: String? = null,
-    val lastName: String? = null,
-)
-
-data class ChangePasswordCommand(
-    val currentPassword: String,
-    val newPassword: String,
-)

@@ -26,7 +26,6 @@ class AuthControllerV1IntegrationTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var inserter: TestDataInsertionUtils
 
-
     @BeforeEach
     fun setUp() {
         dbCleaner.clearAllTables()

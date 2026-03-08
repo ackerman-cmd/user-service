@@ -5,7 +5,7 @@ import com.base.userservice.domain.user.RegisterUserCommand
 import com.base.userservice.domain.user.User
 import com.base.userservice.domain.user.UserStatus
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 object TestUtils {
     fun createRegisterRequest(

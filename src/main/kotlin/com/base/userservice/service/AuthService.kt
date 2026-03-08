@@ -1,22 +1,23 @@
 package com.base.userservice.service
 
-import com.base.userservice.api.message.request.LoginRequest
-import com.base.userservice.api.message.response.LoginResponse
 import com.base.userservice.api.message.response.UserResponse
 import com.base.userservice.domain.role.RoleType
 import com.base.userservice.domain.user.RegisterUserCommand
 import com.base.userservice.domain.user.User
 import com.base.userservice.domain.user.UserStatus
 import com.base.userservice.domain.user.UserVerificationToken
-import com.base.userservice.exeption.UserAlreadyExistsException
-import com.base.userservice.exeption.VerificationTokenException
+import com.base.userservice.event.EmailVerificationEvent
+import com.base.userservice.event.EventPublisher
+import com.base.userservice.exception.UserAlreadyExistsException
+import com.base.userservice.exception.VerificationTokenException
 import com.base.userservice.repository.RoleRepository
 import com.base.userservice.repository.UserRepository
 import com.base.userservice.repository.UserVerificationTokenRepository
+import com.base.userservice.security.TokenHasher
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -26,6 +27,8 @@ class AuthService(
     private val roleRepository: RoleRepository,
     private val passwordEncoder: PasswordEncoder,
     private val userVerificationTokenRepository: UserVerificationTokenRepository,
+    private val eventPublisher: EventPublisher,
+    @Value("\${app.base-url}") private val baseUrl: String,
 ) {
     @Transactional
     fun register(command: RegisterUserCommand): UserResponse {
@@ -50,21 +53,31 @@ class AuthService(
 
         val saved = userRepository.save(user)
 
+        val rawToken = TokenHasher.generate()
+        val tokenHash = TokenHasher.hash(rawToken)
+
         val verificationToken =
             UserVerificationToken(
                 id = UUID.randomUUID(),
                 userId = requireNotNull(saved.id),
-                token = UUID.randomUUID().toString(),
+                token = tokenHash,
                 expiresAt = LocalDateTime.now().plusDays(1),
             )
 
         userVerificationTokenRepository.save(verificationToken)
 
+        eventPublisher.publishEmailVerification(
+            EmailVerificationEvent(
+                userId = saved.id,
+                email = saved.email,
+                username = saved.username,
+                verificationToken = rawToken,
+                verificationUrl = "$baseUrl/api/v1/auth/verify?token=$rawToken",
+            ),
+        )
+
         return UserResponse.from(saved)
     }
-
-    fun authenticate(request: LoginRequest): LoginResponse =
-        LoginResponse(accessToken = " ", refreshToken = " ", expiresAt = Instant.now().plusSeconds(10000))
 
     private fun validateEmailAndUsername(
         email: String,
@@ -85,8 +98,9 @@ class AuthService(
 
     @Transactional
     fun verifyEmail(token: String): UserResponse {
+        val tokenHash = TokenHasher.hash(token)
         val verificationToken =
-            userVerificationTokenRepository.findByToken(token)
+            userVerificationTokenRepository.findByToken(tokenHash)
                 ?: throw VerificationTokenException("Verification token is invalid")
 
         if (verificationToken.usedAt != null) {

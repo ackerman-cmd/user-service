@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
-
 @Component
 class TestDbCleaner(
     private val jdbc: JdbcTemplate,
@@ -20,6 +19,9 @@ class TestDbCleaner(
 
     @Transactional
     fun clearAllTables() {
+        jdbc.execute("""DELETE FROM "$defaultSchema"."outbox_dead_letters"""")
+        jdbc.execute("""DELETE FROM "$defaultSchema"."outbox_events"""")
+        jdbc.execute("""DELETE FROM "$defaultSchema"."user_verification_tokens"""")
         jdbc.execute("""DELETE FROM "$defaultSchema"."user_roles"""")
         jdbc.execute("""DELETE FROM "$defaultSchema"."role_permissions"""")
 

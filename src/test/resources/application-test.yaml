@@ -25,6 +25,17 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     default-schema: user_service
 
+  kafka:
+    bootstrap-servers: localhost:9092
+
+app:
+  base-url: http://localhost:8080
+  kafka:
+    topics:
+      email-verification: email-verification-test
+  outbox:
+    enabled: false
+
 management:
   endpoints:
     web:

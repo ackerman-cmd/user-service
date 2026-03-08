@@ -20,7 +20,6 @@ class TestDataInsertionUtils(
     private val roleRepository: RoleRepository,
     private val permissionRepository: PermissionRepository,
 ) {
-
     @Transactional
     fun insertUser(
         email: String = "user${UUID.randomUUID()}@example.com",
@@ -30,10 +29,10 @@ class TestDataInsertionUtils(
         passwordHash: String = "hashed",
         id: UUID = UUID.randomUUID(),
     ): User {
-        insertRole(RoleType.ROLE_USER)
-        insertPermission(PermissionType.USER_READ)
-        insertPermission(PermissionType.USER_WRITE)
-        insertPermission(PermissionType.USER_DELETE)
+        insertRoleIfAbsent(RoleType.ROLE_USER)
+        insertPermissionIfAbsent(PermissionType.USER_READ)
+        insertPermissionIfAbsent(PermissionType.USER_WRITE)
+        insertPermissionIfAbsent(PermissionType.USER_DELETE)
         val now = LocalDateTime.now()
         return userRepository.save(
             User(
@@ -52,17 +51,26 @@ class TestDataInsertionUtils(
     }
 
     @Transactional
-    fun insertRole(
-       roleType: RoleType,
-       permissions: MutableSet<Permission> = mutableSetOf()
+    fun insertRoleIfAbsent(
+        roleType: RoleType,
+        permissions: MutableSet<Permission> = mutableSetOf(),
     ): Role =
-        roleRepository.save(Role(name = roleType, permissions = permissions))
+        roleRepository.findByName(roleType)
+            ?: roleRepository.save(
+                Role(
+                    id = UUID.randomUUID(),
+                    name = roleType,
+                    permissions = permissions,
+                ),
+            )
 
     @Transactional
-    fun insertPermission(
-        permissionType: PermissionType,
-    ): Permission =
-        permissionRepository.save(Permission(name = permissionType))
-
-
+    fun insertPermissionIfAbsent(permissionType: PermissionType): Permission =
+        permissionRepository.findByName(permissionType)
+            ?: permissionRepository.save(
+                Permission(
+                    id = UUID.randomUUID(),
+                    name = permissionType,
+                ),
+            )
 }
