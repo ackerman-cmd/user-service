@@ -53,7 +53,6 @@ class AuthControllerV1IntegrationTest : AbstractIntegrationTest() {
                 }.andReturn()
 
         val responseBody = result.response.contentAsString
-        // минимальная проверка, что тело не пустое
         assert(responseBody.isNotBlank())
     }
 }
