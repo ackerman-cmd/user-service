@@ -1,6 +1,7 @@
 package com.base.userservice.event
 
 import com.base.userservice.domain.outbox.OutboxEvent
+import com.base.userservice.domain.outbox.OutboxEventType
 import com.base.userservice.repository.OutboxEventRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
@@ -17,7 +18,7 @@ class EventPublisher(
             OutboxEvent(
                 aggregateType = "User",
                 aggregateId = event.userId.toString(),
-                eventType = "EmailVerification",
+                eventType = OutboxEventType.EMAIL_VERIFICATION,
                 topic = emailVerificationTopic,
                 payload = objectMapper.writeValueAsString(event),
             ),

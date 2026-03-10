@@ -2,6 +2,7 @@ package com.base.userservice.integration.service
 
 import com.base.userservice.TestDataInsertionUtils
 import com.base.userservice.TestDbCleaner
+import com.base.userservice.domain.outbox.OutboxEventType
 import com.base.userservice.domain.user.RegisterUserCommand
 import com.base.userservice.domain.user.UserStatus
 import com.base.userservice.event.EmailVerificationEvent
@@ -64,7 +65,7 @@ class AuthServiceIntegrationTest : AbstractIntegrationTest() {
         val outbox = outboxEvents.first()
         assertEquals("User", outbox.aggregateType)
         assertEquals(registered.id.toString(), outbox.aggregateId)
-        assertEquals("EmailVerification", outbox.eventType)
+        assertEquals(OutboxEventType.EMAIL_VERIFICATION, outbox.eventType)
         assertNull(outbox.sentAt)
 
         val payload = objectMapper.readValue(outbox.payload, EmailVerificationEvent::class.java)

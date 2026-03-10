@@ -43,6 +43,7 @@ spring:
 
 app:
   base-url: ${APP_BASE_URL:http://localhost:8080}
+  front-url: ${FRONT_BASE_URL:http://localhost:3000}
   kafka:
     topics:
       email-verification: email-verification

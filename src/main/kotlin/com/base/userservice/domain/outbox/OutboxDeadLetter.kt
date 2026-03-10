@@ -2,6 +2,8 @@ package com.base.userservice.domain.outbox
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.LocalDateTime
@@ -18,8 +20,9 @@ class OutboxDeadLetter(
     val aggregateType: String,
     @Column(name = "aggregate_id", nullable = false)
     val aggregateId: String,
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
-    val eventType: String,
+    val eventType: OutboxEventType,
     @Column(nullable = false)
     val topic: String,
     @Column(nullable = false, columnDefinition = "TEXT")

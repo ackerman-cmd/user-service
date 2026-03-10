@@ -4,6 +4,7 @@ import com.base.userservice.domain.outbox.OutboxDeadLetter
 import com.base.userservice.domain.outbox.OutboxEvent
 import com.base.userservice.repository.OutboxDeadLetterRepository
 import com.base.userservice.repository.OutboxEventRepository
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -34,7 +35,9 @@ class OutboxScheduler(
 
     private fun processEvent(event: OutboxEvent) {
         runCatching {
-            kafkaTemplate.send(event.topic, event.aggregateId, event.payload).get()
+            val record = ProducerRecord(event.topic, null, event.aggregateId, event.payload)
+            record.headers().add("__TypeId__", event.eventType.name.toByteArray())
+            kafkaTemplate.send(record).get()
         }.onSuccess {
             event.sentAt = LocalDateTime.now()
             outboxEventRepository.save(event)

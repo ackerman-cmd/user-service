@@ -2,6 +2,7 @@ package com.base.userservice.unit.event
 
 import com.base.userservice.domain.outbox.OutboxDeadLetter
 import com.base.userservice.domain.outbox.OutboxEvent
+import com.base.userservice.domain.outbox.OutboxEventType
 import com.base.userservice.event.OutboxScheduler
 import com.base.userservice.repository.OutboxDeadLetterRepository
 import com.base.userservice.repository.OutboxEventRepository
@@ -121,7 +122,7 @@ class OutboxSchedulerTest {
         OutboxEvent(
             aggregateType = "User",
             aggregateId = UUID.randomUUID().toString(),
-            eventType = "EmailVerification",
+            eventType = OutboxEventType.EMAIL_VERIFICATION,
             topic = "test-topic",
             payload = """{"test":true}""",
         ).apply { this.retryCount = retryCount }

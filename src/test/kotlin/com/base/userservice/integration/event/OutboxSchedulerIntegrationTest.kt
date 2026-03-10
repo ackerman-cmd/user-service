@@ -2,6 +2,7 @@ package com.base.userservice.integration.event
 
 import com.base.userservice.TestDbCleaner
 import com.base.userservice.domain.outbox.OutboxEvent
+import com.base.userservice.domain.outbox.OutboxEventType
 import com.base.userservice.event.OutboxScheduler
 import com.base.userservice.integration.AbstractIntegrationTest
 import com.base.userservice.repository.OutboxDeadLetterRepository
@@ -61,7 +62,7 @@ class OutboxSchedulerIntegrationTest : AbstractIntegrationTest() {
                 OutboxEvent(
                     aggregateType = "User",
                     aggregateId = aggregateId,
-                    eventType = "EmailVerification",
+                    eventType = OutboxEventType.EMAIL_VERIFICATION,
                     topic = "email-verification-test",
                     payload = payload,
                 ),
@@ -102,7 +103,7 @@ class OutboxSchedulerIntegrationTest : AbstractIntegrationTest() {
             OutboxEvent(
                 aggregateType = "User",
                 aggregateId = UUID.randomUUID().toString(),
-                eventType = "EmailVerification",
+                eventType = OutboxEventType.EMAIL_VERIFICATION,
                 topic = "email-verification-test",
                 payload = "{}",
             ),

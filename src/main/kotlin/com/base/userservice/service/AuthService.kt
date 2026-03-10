@@ -28,7 +28,7 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val userVerificationTokenRepository: UserVerificationTokenRepository,
     private val eventPublisher: EventPublisher,
-    @Value("\${app.base-url}") private val baseUrl: String,
+    @Value("\${app.front-url}") private val frontUrl: String,
 ) {
     @Transactional
     fun register(command: RegisterUserCommand): UserResponse {
@@ -72,7 +72,7 @@ class AuthService(
                 email = saved.email,
                 username = saved.username,
                 verificationToken = rawToken,
-                verificationUrl = "$baseUrl/api/v1/auth/verify?token=$rawToken",
+                verificationUrl = "$frontUrl/auth/verify?token=$rawToken",
             ),
         )
 

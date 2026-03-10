@@ -18,6 +18,8 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
 
 @Configuration
@@ -31,6 +33,13 @@ class AuthorizationServerConfig(
 
         http.securityMatcher(asConfigurer.endpointsMatcher)
         http.with(asConfigurer) { it.oidc(Customizer.withDefaults()) }
+        http.cors(Customizer.withDefaults())
+
+        // Фикс: сохраняем в RequestCache только /oauth2/authorize
+        val requestCache = HttpSessionRequestCache().apply {
+            setRequestMatcher(AntPathRequestMatcher("/oauth2/authorize"))
+        }
+        http.requestCache { it.requestCache(requestCache) }
 
         http.authorizeHttpRequests {
             it.anyRequest().authenticated()
