@@ -47,6 +47,7 @@ app:
   kafka:
     topics:
       email-verification: email-verification
+      user-sync: user-sync
   outbox:
     poll-interval-ms: ${OUTBOX_POLL_INTERVAL_MS:5000}
     max-retries: ${OUTBOX_MAX_RETRIES:5}

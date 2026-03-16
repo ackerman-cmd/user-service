@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Вход — UserService</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --yellow: #FFDD2D;
+            --yellow-hover: #FCC521;
+            --black: #1A1A1A;
+            --white: #FFFFFF;
+            --gray-50: #FAFAFA;
+            --gray-200: #E8E8E8;
+            --gray-400: #BFBFBF;
+            --gray-500: #8C8C8C;
+            --red: #FF4D4F;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.18s ease;
+        }
+
+        html, body { min-height: 100vh; width: 100%; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 16px; line-height: 1.6;
+            color: var(--black); background: var(--black);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            align-items: center; /* Центрирование по вертикали */
+            justify-content: center; /* Центрирование по горизонтали */
+            padding: 20px; /* Отступ на мобильных устройствах */
+        }
+
+        /* ── Декоративное свечение на фоне ── */
+        body::before {
+            content: ''; position: fixed; top: -200px; right: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(255,221,45,0.10) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        body::after {
+            content: ''; position: fixed; bottom: -150px; left: -150px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(255,221,45,0.06) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        /* ── ПАНЕЛЬ ФОРМЫ (КАРТОЧКА) ── */
+        .form-wrap {
+            width: 100%;
+            max-width: 440px;
+            background: var(--white);
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 48px 40px;
+            position: relative; z-index: 1;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+            animation: fadeInUp 0.4s ease both;
+        }
+        .form-accent {
+            position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: var(--yellow);
+            border-top-left-radius: var(--radius-lg);
+            border-top-right-radius: var(--radius-lg);
+        }
+        .form-title { font-size: 32px; font-weight: 800; color: var(--black); letter-spacing: -0.8px; margin-bottom: 6px; text-align: center; }
+        .form-subtitle { font-size: 15px; color: var(--gray-500); margin-bottom: 32px; line-height: 1.6; text-align: center; }
+
+        /* ── ALERT (для ошибок) ── */
+        .alert {
+            display: flex; align-items: flex-start; gap: 10px;
+            background: #fff1f0; border: 1.5px solid #ffa39e;
+            border-radius: var(--radius-md); padding: 13px 16px;
+            margin-bottom: 22px; font-size: 14px; color: #a8071a; line-height: 1.5;
+        }
+        .alert svg { flex-shrink: 0; margin-top: 2px; }
+
+        /* ── ФОРМА ── */
+        .field { margin-bottom: 20px; }
+        .label { display: block; font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 8px; }
+        .input {
+            width: 100%; height: 48px; padding: 0 16px;
+            border: 1.5px solid var(--gray-200); border-radius: var(--radius-md);
+            font-size: 15px; font-family: inherit; color: var(--black);
+            background: var(--white); outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+        .input:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255,221,45,0.18); }
+        .input::placeholder { color: var(--gray-400); }
+
+        .btn-submit {
+            width: 100%; height: 56px; margin-top: 8px;
+            background: var(--yellow); border: none; border-radius: var(--radius-md);
+            font-size: 17px; font-weight: 700; color: var(--black); font-family: inherit;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+        }
+        .btn-submit:hover { background: var(--yellow-hover); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(255,221,45,0.35); }
+        .btn-submit:active { transform: translateY(0); }
+
+        .sec-note {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 20px; padding: 11px 14px;
+            background: var(--gray-50); border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm); font-size: 12px; color: var(--gray-500);
+            justify-content: center; text-align: center;
+        }
+        .sec-note svg { flex-shrink: 0; color: var(--gray-400); }
+
+        .footer { margin-top: 28px; text-align: center; font-size: 14px; color: var(--gray-500); }
+        .footer a {
+            color: var(--black); font-weight: 600;
+            border-bottom: 2px solid var(--yellow); padding-bottom: 1px;
+            text-decoration: none; transition: border-color var(--transition);
+        }
+        .footer a:hover { border-color: var(--black); }
+
+        /* ── АДАПТИВ ── */
+        @media (max-width: 480px) {
+            .form-wrap { padding: 36px 24px; }
+            .form-title { font-size: 28px; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Centered form panel -->
+<div class="form-wrap">
+    <div class="form-accent"></div>
+    <h2 class="form-title">Вход в систему</h2>
+    <p class="form-subtitle">Введите свои учётные данные для авторизации</p>
+
+    <!-- ERROR_PLACEHOLDER -->
+
+    <form action="/login" method="post">
+        <!-- CSRF_PLACEHOLDER -->
+        <div class="field">
+            <label class="label" for="username">Имя пользователя</label>
+            <input id="username" name="username" type="text" class="input"
+                   placeholder="Введите username" required="required" autofocus="autofocus"/>
+        </div>
+
+        <div class="field">
+            <label class="label" for="password">Пароль</label>
+            <input id="password" name="password" type="password" class="input"
+                   placeholder="Введите пароль" required="required"/>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <span>Войти</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </form>
+
+    <div class="sec-note">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1a4 4 0 0 0-4 4v2H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-1V5a4 4 0 0 0-4-4zm-2 4a2 2 0 1 1 4 0v2H6V5z"
+                  fill="currentColor"/>
+        </svg>
+        <span>Защищённый вход · OAuth 2.0 · Шифрование</span>
+    </div>
+
+    <div class="footer">
+        Нет учётной записи?
+        <a href="${frontUrl}/register">Зарегистрироваться</a>
+    </div>
+</div>
+
+</body>
+</html>

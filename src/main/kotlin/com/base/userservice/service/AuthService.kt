@@ -1,6 +1,7 @@
 package com.base.userservice.service
 
 import com.base.userservice.api.message.response.UserResponse
+import com.base.userservice.domain.outbox.OutboxEventType
 import com.base.userservice.domain.role.RoleType
 import com.base.userservice.domain.user.RegisterUserCommand
 import com.base.userservice.domain.user.User
@@ -76,6 +77,8 @@ class AuthService(
             ),
         )
 
+        eventPublisher.publishUserSync(saved, OutboxEventType.USER_REGISTERED)
+
         return UserResponse.from(saved)
     }
 
@@ -122,6 +125,8 @@ class AuthService(
         user.updatedAt = LocalDateTime.now()
 
         verificationToken.usedAt = LocalDateTime.now()
+
+        eventPublisher.publishUserSync(user, OutboxEventType.USER_EMAIL_VERIFIED)
 
         return UserResponse.from(user)
     }

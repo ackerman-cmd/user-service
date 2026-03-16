@@ -35,10 +35,10 @@ class AuthorizationServerConfig(
         http.with(asConfigurer) { it.oidc(Customizer.withDefaults()) }
         http.cors(Customizer.withDefaults())
 
-        // Фикс: сохраняем в RequestCache только /oauth2/authorize
-        val requestCache = HttpSessionRequestCache().apply {
-            setRequestMatcher(AntPathRequestMatcher("/oauth2/authorize"))
-        }
+        val requestCache =
+            HttpSessionRequestCache().apply {
+                setRequestMatcher(AntPathRequestMatcher("/oauth2/authorize"))
+            }
         http.requestCache { it.requestCache(requestCache) }
 
         http.authorizeHttpRequests {

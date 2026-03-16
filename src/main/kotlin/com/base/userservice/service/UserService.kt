@@ -3,8 +3,10 @@ package com.base.userservice.service
 import com.base.userservice.api.message.request.ChangePasswordRequest
 import com.base.userservice.api.message.request.UpdateProfileRequest
 import com.base.userservice.api.message.response.UserResponse
+import com.base.userservice.domain.outbox.OutboxEventType
 import com.base.userservice.domain.user.User
 import com.base.userservice.domain.user.UserStatus
+import com.base.userservice.event.EventPublisher
 import com.base.userservice.exception.InvalidPasswordException
 import com.base.userservice.exception.UserNotFoundException
 import com.base.userservice.repository.UserRepository
@@ -18,6 +20,7 @@ import java.util.UUID
 class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
+    private val eventPublisher: EventPublisher,
 ) {
     fun findById(id: UUID): UserResponse = UserResponse.from(getById(id))
 
@@ -46,6 +49,7 @@ class UserService(
         request.firstName?.let { user.firstName = it }
         request.lastName?.let { user.lastName = it }
         val saved = userRepository.save(user)
+        eventPublisher.publishUserSync(saved, OutboxEventType.USER_PROFILE_UPDATED)
         return UserResponse.from(saved)
     }
 
@@ -61,7 +65,8 @@ class UserService(
         }
 
         user.passwordHash = passwordEncoder.encode(request.newPassword)!!
-        userRepository.save(user)
+        val saved = userRepository.save(user)
+        eventPublisher.publishUserSync(saved, OutboxEventType.USER_PASSWORD_CHANGED)
     }
 
     @Transactional
@@ -72,6 +77,7 @@ class UserService(
         val user = getById(extractUserId(jwt))
         user.status = status
         val saved = userRepository.save(user)
+        eventPublisher.publishUserSync(saved, OutboxEventType.USER_STATUS_CHANGED)
         return UserResponse.from(saved)
     }
 
@@ -83,6 +89,7 @@ class UserService(
         val user = getById(id)
         user.status = status
         val saved = userRepository.save(user)
+        eventPublisher.publishUserSync(saved, OutboxEventType.USER_STATUS_CHANGED)
         return UserResponse.from(saved)
     }
 

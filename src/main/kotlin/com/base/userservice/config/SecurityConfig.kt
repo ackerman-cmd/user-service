@@ -1,5 +1,6 @@
 package com.base.userservice.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -16,7 +17,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-class SecurityConfig {
+class SecurityConfig(
+    @Value("\${app.front-url}") private val frontUrl: String
+) {
     @Bean
     @Order(2)
     fun defaultSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -27,8 +30,11 @@ class SecurityConfig {
                     .requestMatchers(
                         "/api/v1/auth/register",
                         "/api/v1/auth/verify",
+                        "/api/v1/auth/logout",
                         "/actuator/health",
                         "/login",
+                        "/.well-known/**",
+                        "/oauth2/**",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
@@ -37,7 +43,8 @@ class SecurityConfig {
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated()
-            }.formLogin { }
+            }
+            .formLogin { it.loginPage("/login") }
             .csrf { it.ignoringRequestMatchers("/api/**", "/actuator/**") }
             .oauth2ResourceServer { it.jwt { } }
 
@@ -47,7 +54,7 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
-        config.allowedOrigins = listOf("http://localhost:3000")
+        config.allowedOrigins = listOf(frontUrl)
         config.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         config.allowedHeaders = listOf("*")
         config.allowCredentials = true

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
@@ -95,4 +96,23 @@ class AuthControllerV1(
     fun verify(
         @RequestParam token: String,
     ): UserResponse = authService.verifyEmail(token)
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @SecurityRequirements
+    @Operation(
+        summary = "Завершение серверной сессии",
+        description = """
+            Инвалидирует HTTP-сессию Spring Security (JSESSIONID).
+            Вызывается SPA-клиентом перед очисткой локального состояния,
+            чтобы при следующем OAuth2-логине сервер запросил credentials заново.
+            Аутентификация не требуется (сессия определяется по cookie).
+        """,
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "204", description = "Сессия успешно завершена"),
+    )
+    fun logout(request: HttpServletRequest) {
+        request.getSession(false)?.invalidate()
+    }
 }
