@@ -1,6 +1,7 @@
 package com.base.userservice.exception.handler
 
 import com.base.userservice.exception.InvalidPasswordException
+import com.base.userservice.exception.InvalidRoleException
 import com.base.userservice.exception.UserAlreadyExistsException
 import com.base.userservice.exception.UserNotFoundException
 import com.base.userservice.exception.VerificationTokenException
@@ -30,6 +31,10 @@ class GlobalExceptionHandler {
     @ExceptionHandler(InvalidPasswordException::class)
     fun handleInvalidPassword(ex: InvalidPasswordException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid password")
+
+    @ExceptionHandler(InvalidRoleException::class)
+    fun handleInvalidRole(ex: InvalidRoleException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid role")
 
     @ExceptionHandler(VerificationTokenException::class)
     fun handleVerificationToken(ex: VerificationTokenException): ProblemDetail =

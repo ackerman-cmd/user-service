@@ -2,13 +2,17 @@ package com.base.userservice.service
 
 import com.base.userservice.api.message.request.ChangePasswordRequest
 import com.base.userservice.api.message.request.UpdateProfileRequest
+import com.base.userservice.api.message.response.RoleInfoResponse
 import com.base.userservice.api.message.response.UserResponse
 import com.base.userservice.domain.outbox.OutboxEventType
+import com.base.userservice.domain.role.RoleType
 import com.base.userservice.domain.user.User
 import com.base.userservice.domain.user.UserStatus
 import com.base.userservice.event.EventPublisher
 import com.base.userservice.exception.InvalidPasswordException
+import com.base.userservice.exception.InvalidRoleException
 import com.base.userservice.exception.UserNotFoundException
+import com.base.userservice.repository.RoleRepository
 import com.base.userservice.repository.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.jwt.Jwt
@@ -19,6 +23,7 @@ import java.util.UUID
 @Service
 class UserService(
     private val userRepository: UserRepository,
+    private val roleRepository: RoleRepository,
     private val passwordEncoder: PasswordEncoder,
     private val eventPublisher: EventPublisher,
 ) {
@@ -91,6 +96,42 @@ class UserService(
         val saved = userRepository.save(user)
         eventPublisher.publishUserSync(saved, OutboxEventType.USER_STATUS_CHANGED)
         return UserResponse.from(saved)
+    }
+
+    @Transactional(readOnly = true)
+    fun getAvailableRoles(): List<RoleInfoResponse> =
+        roleRepository.findAllByOrderByNameAsc().map {
+            RoleInfoResponse(name = it.name.name, description = it.description)
+        }
+
+    @Transactional
+    fun assignRoles(
+        userId: UUID,
+        roleNames: List<String>,
+    ): UserResponse {
+        val roleTypes =
+            roleNames.map { name ->
+                try {
+                    RoleType.valueOf(name)
+                } catch (e: IllegalArgumentException) {
+                    throw InvalidRoleException(
+                        "Неизвестная роль: $name. Допустимые: ${RoleType.entries.joinToString { r -> r.name }}",
+                    )
+                }
+            }
+        val distinctTypes = roleTypes.distinct()
+        val roles = roleRepository.findByNameIn(distinctTypes)
+        if (roles.size != distinctTypes.size) {
+            val foundNames = roles.map { it.name }.toSet()
+            val missing = distinctTypes.filter { it !in foundNames }
+            throw InvalidRoleException("Роли не найдены в БД: ${missing.joinToString { it.name }}. Обратитесь к администратору.")
+        }
+        val user = getByIdWithRolesAndPermissions(userId)
+        user.roles.clear()
+        user.roles.addAll(roles)
+        val saved = userRepository.save(user)
+        eventPublisher.publishUserSync(saved, OutboxEventType.USER_ROLES_CHANGED)
+        return toResponseWithRolesAndPermissions(saved)
     }
 
     private fun extractUserId(jwt: Jwt): UUID = UUID.fromString(jwt.getClaimAsString("user_id"))

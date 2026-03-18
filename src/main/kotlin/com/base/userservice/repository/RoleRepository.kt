@@ -11,4 +11,8 @@ import java.util.UUID
 @Transactional(readOnly = true)
 interface RoleRepository : JpaRepository<Role, UUID> {
     fun findByName(name: RoleType): Role?
+
+    fun findByNameIn(names: Collection<RoleType>): List<Role>
+
+    fun findAllByOrderByNameAsc(): List<Role>
 }

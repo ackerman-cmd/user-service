@@ -6,6 +6,7 @@ import com.base.userservice.domain.user.UserStatus
 import com.base.userservice.event.EventPublisher
 import com.base.userservice.exception.InvalidPasswordException
 import com.base.userservice.exception.UserNotFoundException
+import com.base.userservice.repository.RoleRepository
 import com.base.userservice.repository.UserRepository
 import com.base.userservice.service.UserService
 import com.base.userservice.util.TestUtils
@@ -25,9 +26,10 @@ import java.util.UUID
 
 class UserServiceTest {
     private val userRepository: UserRepository = mockk()
+    private val roleRepository: RoleRepository = mockk()
     private val passwordEncoder: PasswordEncoder = mockk()
     private val eventPublisher: EventPublisher = mockk(relaxed = true)
-    private val service = UserService(userRepository, passwordEncoder, eventPublisher)
+    private val service = UserService(userRepository, roleRepository, passwordEncoder, eventPublisher)
 
     @Test
     fun `findById throws when user not found`() {

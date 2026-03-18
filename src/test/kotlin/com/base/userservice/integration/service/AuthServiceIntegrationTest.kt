@@ -60,9 +60,10 @@ class AuthServiceIntegrationTest : AbstractIntegrationTest() {
         assertEquals(UserStatus.PENDING_VERIFICATION, savedUser!!.status)
 
         val outboxEvents = outboxEventRepository.findBySentAtIsNullOrderByCreatedAtAsc()
-        assertEquals(1, outboxEvents.size)
+        assertEquals(2, outboxEvents.size)
 
-        val outbox = outboxEvents.first()
+        val outbox =
+            outboxEvents.first { it.eventType == OutboxEventType.EMAIL_VERIFICATION }
         assertEquals("User", outbox.aggregateType)
         assertEquals(registered.id.toString(), outbox.aggregateId)
         assertEquals(OutboxEventType.EMAIL_VERIFICATION, outbox.eventType)

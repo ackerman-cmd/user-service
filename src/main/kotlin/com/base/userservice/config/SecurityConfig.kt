@@ -18,7 +18,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 @EnableMethodSecurity
 class SecurityConfig(
-    @Value("\${app.front-url}") private val frontUrl: String
+    @Value("\${app.front-url}") private val frontUrl: String,
 ) {
     @Bean
     @Order(2)
@@ -43,8 +43,7 @@ class SecurityConfig(
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated()
-            }
-            .formLogin { it.loginPage("/login") }
+            }.formLogin { it.loginPage("/login") }
             .csrf { it.ignoringRequestMatchers("/api/**", "/actuator/**") }
             .oauth2ResourceServer { it.jwt { } }
 

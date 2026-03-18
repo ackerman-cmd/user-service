@@ -10,6 +10,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -44,14 +45,14 @@ class OutboxSchedulerTest {
 
         scheduler.processOutbox()
 
-        verify(exactly = 0) { kafkaTemplate.send(any<String>(), any(), any<String>()) }
+        verify(exactly = 0) { kafkaTemplate.send(any<ProducerRecord<String, String>>()) }
     }
 
     @Test
     fun `processOutbox sends event and marks as sent`() {
         val event = createEvent()
         every { outboxEventRepository.findBySentAtIsNullOrderByCreatedAtAsc() } returns listOf(event)
-        every { kafkaTemplate.send(any<String>(), any(), any<String>()) } returns completedFuture()
+        every { kafkaTemplate.send(any<ProducerRecord<String, String>>()) } returns completedFuture()
 
         scheduler.processOutbox()
 
@@ -64,7 +65,7 @@ class OutboxSchedulerTest {
     fun `processOutbox increments retry on failure`() {
         val event = createEvent()
         every { outboxEventRepository.findBySentAtIsNullOrderByCreatedAtAsc() } returns listOf(event)
-        every { kafkaTemplate.send(any<String>(), any(), any<String>()) } returns failedFuture("Kafka unavailable")
+        every { kafkaTemplate.send(any<ProducerRecord<String, String>>()) } returns failedFuture("Kafka unavailable")
 
         scheduler.processOutbox()
 
@@ -80,7 +81,7 @@ class OutboxSchedulerTest {
     fun `processOutbox moves to dead letter after max retries`() {
         val event = createEvent(retryCount = 2)
         every { outboxEventRepository.findBySentAtIsNullOrderByCreatedAtAsc() } returns listOf(event)
-        every { kafkaTemplate.send(any<String>(), any(), any<String>()) } returns failedFuture("Kafka unavailable")
+        every { kafkaTemplate.send(any<ProducerRecord<String, String>>()) } returns failedFuture("Kafka unavailable")
 
         scheduler.processOutbox()
 
@@ -104,12 +105,14 @@ class OutboxSchedulerTest {
 
         every { outboxEventRepository.findBySentAtIsNullOrderByCreatedAtAsc() } returns
             listOf(successEvent, failEvent)
-        every {
-            kafkaTemplate.send("test-topic", successEvent.aggregateId, any<String>())
-        } returns completedFuture()
-        every {
-            kafkaTemplate.send("test-topic", failEvent.aggregateId, any<String>())
-        } returns failedFuture("Kafka unavailable")
+        every { kafkaTemplate.send(any<ProducerRecord<String, String>>()) } answers {
+            val record = firstArg<ProducerRecord<String, String>>()
+            if (record.key() == successEvent.aggregateId) {
+                completedFuture()
+            } else {
+                failedFuture("Kafka unavailable")
+            }
+        }
 
         scheduler.processOutbox()
 
