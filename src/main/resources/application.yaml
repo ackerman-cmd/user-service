@@ -75,3 +75,13 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      probes:
+        enabled: true
+      group:
+        startup:
+          include: livenessState
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
