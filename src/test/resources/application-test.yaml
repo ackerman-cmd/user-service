@@ -30,6 +30,7 @@ spring:
 
 app:
   base-url: http://localhost:8080
+  front-url: http://localhost:3000
   kafka:
     topics:
       email-verification: email-verification-test
