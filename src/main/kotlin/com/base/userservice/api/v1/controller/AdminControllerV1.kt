@@ -13,6 +13,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.ProblemDetail
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -31,6 +35,33 @@ import java.util.UUID
 class AdminControllerV1(
     private val userService: UserService,
 ) {
+    @GetMapping("/users")
+    @Operation(
+        summary = "Список всех пользователей с пагинацией (admin)",
+        description = """
+            Возвращает постраничный список всех пользователей системы.
+            Поддерживает параметры `page`, `size` и `sort`.
+            Доступно только пользователям с ролью `ROLE_ADMIN`.
+        """,
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Список пользователей"),
+        ApiResponse(
+            responseCode = "401",
+            description = "JWT токен отсутствует или невалиден",
+            content = [Content(schema = Schema(implementation = ProblemDetail::class))],
+        ),
+        ApiResponse(
+            responseCode = "403",
+            description = "Нет прав администратора",
+            content = [Content(schema = Schema(implementation = ProblemDetail::class))],
+        ),
+    )
+    fun getAllUsers(
+        @PageableDefault(size = 20, sort = ["createdAt"], direction = Sort.Direction.DESC)
+        pageable: Pageable,
+    ): Page<UserResponse> = userService.getAllUsers(pageable)
+
     @GetMapping("/roles")
     @Operation(
         summary = "Список доступных ролей",

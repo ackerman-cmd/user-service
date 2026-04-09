@@ -14,6 +14,8 @@ import com.base.userservice.exception.InvalidRoleException
 import com.base.userservice.exception.UserNotFoundException
 import com.base.userservice.repository.RoleRepository
 import com.base.userservice.repository.UserRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -97,6 +99,10 @@ class UserService(
         eventPublisher.publishUserSync(saved, OutboxEventType.USER_STATUS_CHANGED)
         return UserResponse.from(saved)
     }
+
+    @Transactional(readOnly = true)
+    fun getAllUsers(pageable: Pageable): Page<UserResponse> =
+        userRepository.findAll(pageable).map { UserResponse.from(it) }
 
     @Transactional(readOnly = true)
     fun getAvailableRoles(): List<RoleInfoResponse> =

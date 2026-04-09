@@ -84,6 +84,43 @@ class AdminControllerV1IntegrationTest : AbstractIntegrationTest() {
 
     @Test
     @WithMockUser(roles = ["ADMIN"])
+    fun `admin can get all users with pagination`() {
+        authService.register(TestUtils.createRegisterUserCommand(username = "paged-user-1"))
+        authService.register(TestUtils.createRegisterUserCommand(username = "paged-user-2"))
+
+        mockMvc
+            .get("/api/v1/admin/users") {
+                param("page", "0")
+                param("size", "10")
+            }.andExpect {
+                status { isOk() }
+                jsonPath("$.content") { isArray() }
+                jsonPath("$.content.length()") { value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)) }
+                jsonPath("$.totalElements") { value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)) }
+                jsonPath("$.size") { value(10) }
+                jsonPath("$.number") { value(0) }
+            }
+    }
+
+    @Test
+    @WithMockUser(roles = ["ADMIN"])
+    fun `admin can get all users with page size 1`() {
+        authService.register(TestUtils.createRegisterUserCommand(username = "paged-small-1"))
+        authService.register(TestUtils.createRegisterUserCommand(username = "paged-small-2"))
+
+        mockMvc
+            .get("/api/v1/admin/users") {
+                param("page", "0")
+                param("size", "1")
+            }.andExpect {
+                status { isOk() }
+                jsonPath("$.content.length()") { value(1) }
+                jsonPath("$.totalPages") { value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)) }
+            }
+    }
+
+    @Test
+    @WithMockUser(roles = ["ADMIN"])
     fun `admin can change user status`() {
         val registered =
             authService.register(

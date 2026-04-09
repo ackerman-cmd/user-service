@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -19,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableMethodSecurity
 class SecurityConfig(
     @Value("\${app.front-url}") private val frontUrl: String,
+    private val jwtAuthenticationConverter: JwtAuthenticationConverter,
 ) {
     @Bean
     @Order(2)
@@ -48,7 +50,9 @@ class SecurityConfig(
                     .authenticated()
             }.formLogin { it.loginPage("/login") }
             .csrf { it.ignoringRequestMatchers("/api/**", "/actuator/**") }
-            .oauth2ResourceServer { it.jwt { } }
+            .oauth2ResourceServer {
+                it.jwt { jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter) }
+            }
 
         return http.build()
     }
