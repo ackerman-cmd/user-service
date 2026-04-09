@@ -86,7 +86,7 @@ class AdminControllerV1IntegrationTest : AbstractIntegrationTest() {
     @WithMockUser(roles = ["ADMIN"])
     fun `admin can get all users with pagination`() {
         authService.register(TestUtils.createRegisterUserCommand(username = "paged-user-1"))
-        authService.register(TestUtils.createRegisterUserCommand(username = "paged-user-2"))
+        authService.register(TestUtils.createRegisterUserCommand(username = "paged-user-2", email = "email2@mail.ru"))
 
         mockMvc
             .get("/api/v1/admin/users") {
@@ -106,7 +106,7 @@ class AdminControllerV1IntegrationTest : AbstractIntegrationTest() {
     @WithMockUser(roles = ["ADMIN"])
     fun `admin can get all users with page size 1`() {
         authService.register(TestUtils.createRegisterUserCommand(username = "paged-small-1"))
-        authService.register(TestUtils.createRegisterUserCommand(username = "paged-small-2"))
+        authService.register(TestUtils.createRegisterUserCommand(username = "paged-small-2", email = "email2@mail.ru"))
 
         mockMvc
             .get("/api/v1/admin/users") {

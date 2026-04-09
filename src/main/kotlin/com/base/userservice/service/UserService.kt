@@ -101,8 +101,7 @@ class UserService(
     }
 
     @Transactional(readOnly = true)
-    fun getAllUsers(pageable: Pageable): Page<UserResponse> =
-        userRepository.findAll(pageable).map { UserResponse.from(it) }
+    fun getAllUsers(pageable: Pageable): Page<UserResponse> = userRepository.findAll(pageable).map { UserResponse.from(it) }
 
     @Transactional(readOnly = true)
     fun getAvailableRoles(): List<RoleInfoResponse> =
