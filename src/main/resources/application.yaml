@@ -1,6 +1,8 @@
 spring:
   application:
     name: user-service
+  config:
+    import: optional:file:./secrets.yaml
 
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMA}
