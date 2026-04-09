@@ -3,18 +3,12 @@ spring:
     show-sql: true
 
   datasource:
-    url: jdbc:postgresql://${db.host}:${db.port}/${db.name}?currentSchema=user_service
-    username: ${db.username}
-    password: ${db.password}
-
-  data:
-    redis:
-      host: ${redis.host}
-      port: ${redis.port}
-      password: ${redis.password}
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMA}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
 
   kafka:
-    bootstrap-servers: ${kafka.bootstrap-servers}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 
 server:
   port: 8080
